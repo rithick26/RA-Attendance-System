@@ -99,4 +99,34 @@ class DatabaseHelper {
 
     return await db.query('attendance', where: 'date = ?', whereArgs: [date]);
   }
+
+  Future<List<Map<String, dynamic>>> getAttendanceByRollNo(
+    String rollNo,
+  ) async {
+    final db = await instance.database;
+
+    return await db.query(
+      'attendance',
+      where: 'rollNo = ?',
+      whereArgs: [rollNo],
+    );
+  }
+
+  Future<Map<String, dynamic>> getStudentAttendanceStats(String rollNo) async {
+    final db = await instance.database;
+
+    final result = await db.query(
+      'attendance',
+      where: 'rollNo = ?',
+      whereArgs: [rollNo],
+    );
+
+    int total = result.length;
+
+    int present = result.where((row) => row['status'] == 1).length;
+
+    double percentage = total == 0 ? 0 : (present / total) * 100;
+
+    return {'present': present, 'total': total, 'percentage': percentage};
+  }
 }

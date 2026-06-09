@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../database/database_helper.dart';
 
 class ReportsScreen extends StatefulWidget {
   final String? initialYear;
@@ -15,6 +14,7 @@ class ReportsScreen extends StatefulWidget {
 
 class _ReportsScreenState extends State<ReportsScreen> {
   List<Map<String, dynamic>> students = [];
+  Map<String, Map<String, dynamic>> attendanceStats = {};
 
   String? selectedYear = "I Year";
 
@@ -55,11 +55,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 headers: ['Roll No', 'Name', 'Present', 'Total', '%'],
 
                 data: filteredStudents.map((student) {
-                  int present = getPresentDays(student);
+                  var stats = attendanceStats[student["rollNo"]];
 
-                  int total = getTotalDays(student);
-
-                  double percentage = getPercentage(student);
+                  int present = stats?["present"] ?? 0;
+                  int total = stats?["total"] ?? 0;
+                  double percentage = stats?["percentage"] ?? 0.0;
 
                   return [
                     student["rollNo"],
@@ -97,37 +97,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Future<void> loadStudents() async {
-    final prefs = await SharedPreferences.getInstance();
+    students = await DatabaseHelper.instance.getStudents();
 
-    String? data = prefs.getString('students');
+    attendanceStats.clear();
 
-    if (data != null) {
-      setState(() {
-        students = List<Map<String, dynamic>>.from(jsonDecode(data));
-      });
-    }
-  }
-
-  int getPresentDays(Map<String, dynamic> student) {
-    Map attendance = student["attendance"];
-
-    return attendance.values.where((value) => value == true).length;
-  }
-
-  int getTotalDays(Map<String, dynamic> student) {
-    Map attendance = student["attendance"];
-
-    return attendance.length;
-  }
-
-  double getPercentage(Map<String, dynamic> student) {
-    int total = getTotalDays(student);
-
-    if (total == 0) {
-      return 0;
+    for (var student in students) {
+      attendanceStats[student["rollNo"]] = await DatabaseHelper.instance
+          .getStudentAttendanceStats(student["rollNo"]);
     }
 
-    return (getPresentDays(student) / total) * 100;
+    setState(() {});
   }
 
   @override
@@ -209,11 +188,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                               children: [
                                 Text(
-                                  "${getPresentDays(student)}/${getTotalDays(student)}",
+                                  "${attendanceStats[student["rollNo"]]?["present"] ?? 0}/"
+                                  "${attendanceStats[student["rollNo"]]?["total"] ?? 0}",
                                 ),
 
                                 Text(
-                                  "${getPercentage(student).toStringAsFixed(1)}%",
+                                  "${(attendanceStats[student["rollNo"]]?["percentage"] ?? 0.0).toStringAsFixed(1)}%",
                                 ),
                               ],
                             ),
