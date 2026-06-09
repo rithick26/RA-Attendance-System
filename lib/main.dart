@@ -24,7 +24,7 @@ class AttendanceApp extends StatefulWidget {
 }
 
 class _AttendanceAppState extends State<AttendanceApp> {
-  ThemeMode _themeMode = ThemeMode.system;
+  ThemeMode _themeMode = ThemeMode.light;
 
   void changeTheme(ThemeMode mode) {
     setState(() {
@@ -59,9 +59,11 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  bool isDark = false;
   @override
   void initState() {
     super.initState();
+    isDark = widget.themeMode == ThemeMode.dark;
     loadStudents();
   }
 
@@ -172,17 +174,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         centerTitle: true,
         actions: [
-          PopupMenuButton<ThemeMode>(
-            icon: const Icon(Icons.palette_outlined),
-            onSelected: widget.onThemeChanged,
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: ThemeMode.light, child: Text("Light")),
-              const PopupMenuItem(value: ThemeMode.dark, child: Text("Dark")),
-              const PopupMenuItem(
-                value: ThemeMode.system,
-                child: Text("System"),
-              ),
-            ],
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Switch(
+                  value: isDark,
+
+                  thumbIcon: WidgetStateProperty.resolveWith<Icon?>((states) {
+                    return states.contains(WidgetState.selected)
+                        ? const Icon(Icons.nightlight_round, size: 14)
+                        : const Icon(Icons.wb_sunny, size: 14);
+                  }),
+
+                  onChanged: (value) {
+                    setState(() {
+                      isDark = value;
+                    });
+
+                    widget.onThemeChanged(
+                      value ? ThemeMode.dark : ThemeMode.light,
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
 
           IconButton(

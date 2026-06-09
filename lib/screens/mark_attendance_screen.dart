@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../database/database_helper.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 class MarkAttendanceScreen extends StatefulWidget {
   const MarkAttendanceScreen({super.key});
@@ -125,22 +126,28 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
 
         child: Column(
           children: [
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField2<String>(
               value: selectedYear,
+
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.bold,
+              ),
 
               decoration: const InputDecoration(
                 labelText: "Select Year",
                 labelStyle: TextStyle(fontSize: 14),
-                border: OutlineInputBorder(),
+              ),
+
+              dropdownStyleData: DropdownStyleData(
+                width: MediaQuery.of(context).size.width - 32,
+                maxHeight: 250,
               ),
 
               items: years.map((year) {
-                return DropdownMenuItem(
+                return DropdownMenuItem<String>(
                   value: year,
-                  child: Text(
-                    year,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  child: Text(year, style: const TextStyle(fontSize: 14)),
                 );
               }).toList(),
 
@@ -148,11 +155,11 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
                 setState(() {
                   selectedYear = value;
                 });
+
                 await loadAttendance();
                 checkAttendanceStatus();
               },
             ),
-
             const SizedBox(height: 15),
 
             ElevatedButton.icon(
@@ -288,33 +295,35 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
                   fontSize: 16,
                 ),
               ),
+            if (filteredStudents.isNotEmpty) ...[
+              Text("Total Students : ${filteredStudents.length}"),
 
-            Text("Total Students : ${filteredStudents.length}"),
+              Text("Present : ${getPresentCount(filteredStudents)}"),
 
-            Text("Present : ${getPresentCount(filteredStudents)}"),
+              Text("Absent : ${getAbsentCount(filteredStudents)}"),
 
-            Text("Absent : ${getAbsentCount(filteredStudents)}"),
+              const SizedBox(height: 15),
+            ],
 
-            const SizedBox(height: 15),
+            if (filteredStudents.isNotEmpty)
+              SizedBox(
+                width: double.infinity,
 
-            SizedBox(
-              width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: editMode
+                      ? saveAttendance
+                      : () {
+                          setState(() {
+                            editMode = true;
+                          });
+                        },
 
-              child: ElevatedButton(
-                onPressed: editMode
-                    ? saveAttendance
-                    : () {
-                        setState(() {
-                          editMode = true;
-                        });
-                      },
-
-                child: Text(
-                  editMode ? "Save Attendance" : "Modify Attendance",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  child: Text(
+                    editMode ? "Save Attendance" : "Modify Attendance",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

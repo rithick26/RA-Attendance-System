@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ra_attendance_management/screens/add_student_screen.dart';
-import 'package:ra_attendance_management/screens/reports_screen.dart';
 import '../database/database_helper.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 class ViewStudentsScreen extends StatefulWidget {
   const ViewStudentsScreen({super.key});
@@ -35,94 +35,55 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
     setState(() {});
   }
 
-  void deleteStudentDialog() {
-    if (selectedYear == null) return;
-
-    List<Map<String, dynamic>> filteredStudents = students.where((student) {
-      return student["year"] == selectedYear;
-    }).toList();
-
-    filteredStudents.sort(
-      (a, b) => int.parse(
-        a["rollNo"].toString(),
-      ).compareTo(int.parse(b["rollNo"].toString())),
-    );
-
-    String? selectedRollNo;
-
+  Future<void> showDeleteDialog(Map<String, dynamic> student) async {
     showDialog(
       context: context,
-
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text("Delete Student"),
+        return AlertDialog(
+          title: const Text("Delete Student"),
 
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Are you sure you want to delete ${student["name"]}?"),
 
+              const SizedBox(height: 20),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  DropdownButtonFormField<String>(
-                    value: selectedRollNo,
-
-                    decoration: const InputDecoration(
-                      labelText: "Select Student",
-                    ),
-
-                    items: filteredStudents.map((student) {
-                      return DropdownMenuItem<String>(
-                        value: student["rollNo"].toString(),
-                        child: Text(
-                          '${student["rollNo"]} - ${student["name"]}',
-                        ),
-                      );
-                    }).toList(),
-
-                    onChanged: (value) {
-                      setDialogState(() {
-                        selectedRollNo = value;
-                      });
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
                     },
+                    child: const Text("Cancel"),
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  ElevatedButton(
+                    onPressed: () async {
+                      await DatabaseHelper.instance.deleteStudent(
+                        student["rollNo"].toString(),
+                      );
+
+                      await loadStudents();
+
+                      if (context.mounted) {
+                        Navigator.pop(context);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Student Deleted")),
+                        );
+                      }
+                    },
+                    child: const Text("Delete"),
                   ),
                 ],
               ),
-
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Cancel"),
-                ),
-
-                ElevatedButton(
-                  onPressed: () async {
-                    if (selectedRollNo == null) {
-                      return;
-                    }
-
-                    await DatabaseHelper.instance.deleteStudent(
-                      selectedRollNo!,
-                    );
-
-                    await loadStudents();
-
-                    Navigator.pop(context);
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Student Deleted")),
-                    );
-                  },
-
-                  child: const Text(
-                    "Delete",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            );
-          },
+            ],
+          ),
         );
       },
     );
@@ -140,7 +101,7 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
 
         child: Column(
           children: [
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField2<String>(
               value: selectedYear,
 
               style: TextStyle(
@@ -151,7 +112,10 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
                 labelText: "Select Year",
                 labelStyle: TextStyle(fontSize: 14),
               ),
-
+              dropdownStyleData: DropdownStyleData(
+                width: MediaQuery.of(context).size.width - 32,
+                maxHeight: 250,
+              ),
               items: years.map((year) {
                 return DropdownMenuItem(
                   value: year,
@@ -170,67 +134,6 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
                 });
               },
             ),
-
-            const SizedBox(height: 20),
-
-            if (selectedYear != null)
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      style: Theme.of(context).elevatedButtonTheme.style,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const AddStudentScreen(),
-                          ),
-                        ).then((_) {
-                          loadStudents();
-                        });
-                      },
-                      child: const Text(
-                        "Add Student",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 10),
-
-                  Expanded(
-                    child: ElevatedButton(
-                      style: Theme.of(context).elevatedButtonTheme.style,
-                      onPressed: deleteStudentDialog,
-                      child: const Text(
-                        "Delete Student",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 10),
-
-                  Expanded(
-                    child: ElevatedButton(
-                      style: Theme.of(context).elevatedButtonTheme.style,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                ReportsScreen(initialYear: selectedYear),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        "Reports",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
 
             const SizedBox(height: 20),
 
@@ -261,7 +164,19 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
 
                             title: Text(filteredStudents[index]["name"]),
 
-                            subtitle: Text(filteredStudents[index]["rollNo"]),
+                            subtitle: Text(
+                              filteredStudents[index]["rollNo"].toString(),
+                            ),
+
+                            trailing: IconButton(
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: Colors.red,
+                              ),
+                              onPressed: () {
+                                showDeleteDialog(filteredStudents[index]);
+                              },
+                            ),
                           ),
                         );
                       },

@@ -15,7 +15,6 @@ class AppTheme {
       highlightColor: Colors.transparent,
 
       textTheme: GoogleFonts.aleoTextTheme(),
-
       colorScheme: ColorScheme.light(
         primary: AppColors.accent,
         secondary: AppColors.accent,
@@ -62,13 +61,15 @@ class AppTheme {
           backgroundColor: AppColors.accent,
           foregroundColor: Colors.white,
           elevation: 0,
-          minimumSize: const Size(double.infinity, 50),
+          minimumSize: const Size(0, 50),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),
-
+      switchTheme: const SwitchThemeData(
+        overlayColor: WidgetStatePropertyAll(Colors.transparent),
+      ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.secondary,
         selectedItemColor: AppColors.accent,
@@ -148,13 +149,15 @@ class AppTheme {
           backgroundColor: const Color(0xFF60A5FA),
           foregroundColor: Colors.white,
           elevation: 0,
-          minimumSize: const Size(double.infinity, 50),
+          minimumSize: const Size(0, 50),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),
-
+      switchTheme: const SwitchThemeData(
+        overlayColor: WidgetStatePropertyAll(Colors.transparent),
+      ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: Color(0xFF1E293B),
         selectedItemColor: Color(0xFF60A5FA),

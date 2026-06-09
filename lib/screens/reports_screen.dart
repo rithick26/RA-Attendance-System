@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../database/database_helper.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 class ReportsScreen extends StatefulWidget {
   final String? initialYear;
@@ -128,8 +129,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
         child: Column(
           children: [
-            DropdownButtonFormField<String>(
-              initialValue: selectedYear,
+            DropdownButtonFormField2<String>(
+              value: selectedYear,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
@@ -140,7 +141,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 labelStyle: TextStyle(fontSize: 14),
                 border: OutlineInputBorder(),
               ),
-
+              dropdownStyleData: DropdownStyleData(
+                width: MediaQuery.of(context).size.width - 32,
+                maxHeight: 250,
+              ),
               items: years.map((year) {
                 return DropdownMenuItem(value: year, child: Text(year));
               }).toList(),

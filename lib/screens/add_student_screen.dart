@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../database/database_helper.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 class AddStudentScreen extends StatefulWidget {
   const AddStudentScreen({super.key});
@@ -107,7 +108,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
 
             const SizedBox(height: 15),
 
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField2<String>(
               value: selectedYear,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurface,
@@ -116,6 +117,10 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
               decoration: const InputDecoration(
                 labelText: "Year",
                 labelStyle: TextStyle(fontSize: 14),
+              ),
+              dropdownStyleData: DropdownStyleData(
+                width: MediaQuery.of(context).size.width - 32,
+                maxHeight: 250,
               ),
 
               items: years.map((year) {

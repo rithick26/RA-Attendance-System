@@ -25,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen> {
         context,
         MaterialPageRoute(
           builder: (_) => DashboardScreen(
-            themeMode: ThemeMode.system,
+            themeMode: widget.themeMode,
             onThemeChanged: widget.onThemeChanged,
           ),
         ),
