@@ -55,7 +55,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 headers: ['Roll No', 'Name', 'Present', 'Total', '%'],
 
                 data: filteredStudents.map((student) {
-                  var stats = attendanceStats[student["rollNo"]];
+                  var stats = attendanceStats[student["rollNo"].toString()];
 
                   int present = stats?["present"] ?? 0;
                   int total = stats?["total"] ?? 0;
@@ -99,11 +99,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Future<void> loadStudents() async {
     students = await DatabaseHelper.instance.getStudents();
 
+    print("Reports Screen Students = $students");
+
     attendanceStats.clear();
 
     for (var student in students) {
-      attendanceStats[student["rollNo"]] = await DatabaseHelper.instance
-          .getStudentAttendanceStats(student["rollNo"]);
+      attendanceStats[student["rollNo"].toString()] = await DatabaseHelper
+          .instance
+          .getStudentAttendanceStats(student["rollNo"].toString());
     }
 
     setState(() {});
@@ -188,12 +191,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
                               children: [
                                 Text(
-                                  "${attendanceStats[student["rollNo"]]?["present"] ?? 0}/"
-                                  "${attendanceStats[student["rollNo"]]?["total"] ?? 0}",
+                                  "${attendanceStats[student["rollNo"].toString()]?["present"] ?? 0}/"
+                                  "${attendanceStats[student["rollNo"].toString()]?["total"] ?? 0}",
                                 ),
 
                                 Text(
-                                  "${(attendanceStats[student["rollNo"]]?["percentage"] ?? 0.0).toStringAsFixed(1)}%",
+                                  "${(attendanceStats[student["rollNo"].toString()]?["percentage"] ?? 0.0).toStringAsFixed(1)}%",
                                 ),
                               ],
                             ),

@@ -120,7 +120,7 @@ class DatabaseHelper {
       where: 'rollNo = ?',
       whereArgs: [rollNo],
     );
-
+    print("Stats for $rollNo = $result");
     int total = result.length;
 
     int present = result.where((row) => row['status'] == 1).length;
@@ -128,5 +128,10 @@ class DatabaseHelper {
     double percentage = total == 0 ? 0 : (present / total) * 100;
 
     return {'present': present, 'total': total, 'percentage': percentage};
+  }
+
+  Future<List<Map<String, dynamic>>> getAllAttendance() async {
+    final db = await instance.database;
+    return await db.query('attendance');
   }
 }

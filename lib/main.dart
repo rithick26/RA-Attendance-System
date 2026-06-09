@@ -4,8 +4,6 @@ import 'package:ra_attendance_management/theme/app_colors.dart';
 import 'screens/view_students_screen.dart';
 import 'screens/mark_attendance_screen.dart';
 import 'screens/reports_screen.dart';
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/about_screen.dart';
 import 'screens/dashboard_home.dart';
 import 'theme/app_theme.dart';
@@ -14,12 +12,14 @@ import 'database/database_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await DatabaseHelper.instance.database;
+  var attendance = await DatabaseHelper.instance.getAllAttendance();
 
-  var students = await DatabaseHelper.instance.getStudents();
+  // var students = await DatabaseHelper.instance.getStudents();
+  // var attendance = await DatabaseHelper.instance.getAllAttendance();
 
-  print(students);
+  // print("Students = $students");
+  print("Attendance = $attendance");
 
   runApp(const AttendanceApp());
 }
@@ -107,67 +107,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
   ];
 
   Future<void> loadStudents() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    String? data = prefs.getString('students');
+    students = await DatabaseHelper.instance.getStudents();
 
     String today = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-    if (data != null) {
-      students = List<Map<String, dynamic>>.from(jsonDecode(data));
+    final attendanceToday = await DatabaseHelper.instance.getAttendanceByDate(
+      today,
+    );
 
-      setState(() {
-        totalStudents = students.length;
+    setState(() {
+      totalStudents = students.length;
 
-        firstYear = students.where((s) => s["year"] == "I Year").length;
+      firstYear = students.where((s) => s["year"] == "I Year").length;
+      secondYear = students.where((s) => s["year"] == "II Year").length;
+      thirdYear = students.where((s) => s["year"] == "III Year").length;
+      fourthYear = students.where((s) => s["year"] == "IV Year").length;
 
-        secondYear = students.where((s) => s["year"] == "II Year").length;
+      firstYearPresent = 0;
+      firstYearAbsent = 0;
+      secondYearPresent = 0;
+      secondYearAbsent = 0;
+      thirdYearPresent = 0;
+      thirdYearAbsent = 0;
+      fourthYearPresent = 0;
+      fourthYearAbsent = 0;
 
-        thirdYear = students.where((s) => s["year"] == "III Year").length;
+      for (var attendance in attendanceToday) {
+        String rollNo = attendance["rollNo"];
+        bool present = attendance["status"] == 1;
 
-        fourthYear = students.where((s) => s["year"] == "IV Year").length;
+        var student = students.firstWhere(
+          (s) => s["rollNo"] == rollNo,
+          orElse: () => {},
+        );
 
-        firstYearPresent = students.where((s) {
-          return s["year"] == "I Year" && s["attendance"][today] == true;
-        }).length;
+        if (student.isEmpty) continue;
 
-        firstYearAbsent = students.where((s) {
-          return s["year"] == "I Year" &&
-              s["attendance"].containsKey(today) &&
-              s["attendance"][today] == false;
-        }).length;
+        String year = student["year"];
 
-        secondYearPresent = students.where((s) {
-          return s["year"] == "II Year" && s["attendance"][today] == true;
-        }).length;
-
-        secondYearAbsent = students.where((s) {
-          return s["year"] == "II Year" &&
-              s["attendance"].containsKey(today) &&
-              s["attendance"][today] == false;
-        }).length;
-
-        thirdYearPresent = students.where((s) {
-          return s["year"] == "III Year" && s["attendance"][today] == true;
-        }).length;
-
-        thirdYearAbsent = students.where((s) {
-          return s["year"] == "III Year" &&
-              s["attendance"].containsKey(today) &&
-              s["attendance"][today] == false;
-        }).length;
-
-        fourthYearPresent = students.where((s) {
-          return s["year"] == "IV Year" && s["attendance"][today] == true;
-        }).length;
-
-        fourthYearAbsent = students.where((s) {
-          return s["year"] == "IV Year" &&
-              s["attendance"].containsKey(today) &&
-              s["attendance"][today] == false;
-        }).length;
-      });
-    }
+        if (year == "I Year") {
+          present ? firstYearPresent++ : firstYearAbsent++;
+        } else if (year == "II Year") {
+          present ? secondYearPresent++ : secondYearAbsent++;
+        } else if (year == "III Year") {
+          present ? thirdYearPresent++ : thirdYearAbsent++;
+        } else if (year == "IV Year") {
+          present ? fourthYearPresent++ : fourthYearAbsent++;
+        }
+      }
+    });
   }
 
   List<Map<String, dynamic>> students = [];
