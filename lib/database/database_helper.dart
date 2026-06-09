@@ -94,12 +94,6 @@ class DatabaseHelper {
     return await db.query('attendance', where: 'date = ?', whereArgs: [date]);
   }
 
-  Future<List<Map<String, dynamic>>> getAttendance(String date) async {
-    final db = await instance.database;
-
-    return await db.query('attendance', where: 'date = ?', whereArgs: [date]);
-  }
-
   Future<List<Map<String, dynamic>>> getAttendanceByRollNo(
     String rollNo,
   ) async {
@@ -120,7 +114,6 @@ class DatabaseHelper {
       where: 'rollNo = ?',
       whereArgs: [rollNo],
     );
-    print("Stats for $rollNo = $result");
     int total = result.length;
 
     int present = result.where((row) => row['status'] == 1).length;

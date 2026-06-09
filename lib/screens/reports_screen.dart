@@ -99,8 +99,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Future<void> loadStudents() async {
     students = await DatabaseHelper.instance.getStudents();
 
-    print("Reports Screen Students = $students");
-
     attendanceStats.clear();
 
     for (var student in students) {

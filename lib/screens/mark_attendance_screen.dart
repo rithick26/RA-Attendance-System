@@ -36,7 +36,6 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
 
   Future<void> loadStudents() async {
     students = await DatabaseHelper.instance.getStudents();
-    print("Attendance Screen Students = $students");
     setState(() {});
   }
 
@@ -91,16 +90,13 @@ class _MarkAttendanceScreenState extends State<MarkAttendanceScreen> {
   }
 
   Future<void> saveAttendance() async {
-    print("Attendance Map = $attendanceMap");
     for (var entry in attendanceMap.entries) {
-      print("Saving ${entry.key} -> ${entry.value}");
       await DatabaseHelper.instance.markAttendance(
         rollNo: entry.key,
         date: currentDateKey(),
         present: entry.value,
       );
     }
-    print(await DatabaseHelper.instance.getAllAttendance());
     setState(() {
       attendanceSaved = true;
       editMode = false;
