@@ -13,14 +13,6 @@ import 'database/database_helper.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DatabaseHelper.instance.database;
-  var attendance = await DatabaseHelper.instance.getAllAttendance();
-
-  // var students = await DatabaseHelper.instance.getStudents();
-  // var attendance = await DatabaseHelper.instance.getAllAttendance();
-
-  // print("Students = $students");
-  print("Attendance = $attendance");
-
   runApp(const AttendanceApp());
 }
 
@@ -145,16 +137,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         String year = student["year"];
 
-        if (year == "I Year") {
-          present ? firstYearPresent++ : firstYearAbsent++;
-        } else if (year == "II Year") {
-          present ? secondYearPresent++ : secondYearAbsent++;
-        } else if (year == "III Year") {
-          present ? thirdYearPresent++ : thirdYearAbsent++;
-        } else if (year == "IV Year") {
-          present ? fourthYearPresent++ : fourthYearAbsent++;
+        if (year == "I Year" && present) {
+          firstYearPresent++;
+        } else if (year == "II Year" && present) {
+          secondYearPresent++;
+        } else if (year == "III Year" && present) {
+          thirdYearPresent++;
+        } else if (year == "IV Year" && present) {
+          fourthYearPresent++;
         }
       }
+      firstYearAbsent = firstYear - firstYearPresent;
+      secondYearAbsent = secondYear - secondYearPresent;
+      thirdYearAbsent = thirdYear - thirdYearPresent;
+      fourthYearAbsent = fourthYear - fourthYearPresent;
     });
   }
 
