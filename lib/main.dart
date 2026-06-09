@@ -196,7 +196,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      body: IndexedStack(index: _currentIndex, children: _screens),
+      body: _screens[_currentIndex],
 
       bottomNavigationBar: SafeArea(
         child: Container(
