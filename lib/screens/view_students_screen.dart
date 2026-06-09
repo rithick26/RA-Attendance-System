@@ -1,39 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:ra_attendance_management/screens/add_student_screen.dart';
-import '../database/database_helper.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../providers/students_provider.dart';
+import '../database/database_helper.dart';
 
-class ViewStudentsScreen extends StatefulWidget {
+class ViewStudentsScreen extends ConsumerStatefulWidget {
   const ViewStudentsScreen({super.key});
 
   @override
-  State<ViewStudentsScreen> createState() => _ViewStudentsScreenState();
+  ConsumerState<ViewStudentsScreen> createState() => _ViewStudentsScreenState();
 }
 
-class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
-  List<Map<String, dynamic>> students = [];
-
+class _ViewStudentsScreenState extends ConsumerState<ViewStudentsScreen> {
   String? selectedYear = "I Year";
 
   final List<String> years = ["I Year", "II Year", "III Year", "IV Year"];
-
-  @override
-  void initState() {
-    super.initState();
-    loadStudents();
-  }
-
-  @override
-  void activate() {
-    super.activate();
-    loadStudents();
-  }
-
-  Future<void> loadStudents() async {
-    students = await DatabaseHelper.instance.getStudents();
-
-    setState(() {});
-  }
 
   Future<void> showDeleteDialog(Map<String, dynamic> student) async {
     showDialog(
@@ -68,8 +50,7 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
                         student["rollNo"].toString(),
                       );
 
-                      await loadStudents();
-
+                      ref.invalidate(studentsProvider);
                       if (context.mounted) {
                         Navigator.pop(context);
 
@@ -91,112 +72,120 @@ class _ViewStudentsScreenState extends State<ViewStudentsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> filteredStudents = students.where((student) {
-      return student["year"] == selectedYear;
-    }).toList();
+    final studentsAsync = ref.watch(studentsProvider);
+    return studentsAsync.when(
+      data: (students) {
+        List<Map<String, dynamic>> filteredStudents = students.where((student) {
+          return student["year"] == selectedYear;
+        }).toList();
 
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+        return Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.all(16),
 
-        child: Column(
-          children: [
-            DropdownButtonFormField2<String>(
-              value: selectedYear,
+            child: Column(
+              children: [
+                DropdownButtonFormField2<String>(
+                  value: selectedYear,
 
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.bold,
-              ),
-              decoration: const InputDecoration(
-                labelText: "Select Year",
-                labelStyle: TextStyle(fontSize: 14),
-              ),
-              dropdownStyleData: DropdownStyleData(
-                width: MediaQuery.of(context).size.width - 32,
-                maxHeight: 250,
-              ),
-              items: years.map((year) {
-                return DropdownMenuItem(
-                  value: year,
-                  child: Text(
-                    year,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
                   ),
-                );
-              }).toList(),
-
-              onChanged: (value) {
-                setState(() {
-                  selectedYear = value;
-                });
-              },
-            ),
-
-            const SizedBox(height: 20),
-
-            Expanded(
-              child: filteredStudents.isEmpty
-                  ? Center(
+                  decoration: const InputDecoration(
+                    labelText: "Select Year",
+                    labelStyle: TextStyle(fontSize: 14),
+                  ),
+                  dropdownStyleData: DropdownStyleData(
+                    width: MediaQuery.of(context).size.width - 32,
+                    maxHeight: 250,
+                  ),
+                  items: years.map((year) {
+                    return DropdownMenuItem(
+                      value: year,
                       child: Text(
-                        "No Students Found",
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
+                        year,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
-                    )
-                  : ListView.builder(
-                      itemCount: filteredStudents.length,
+                    );
+                  }).toList(),
 
-                      itemBuilder: (context, index) {
-                        return Card(
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.primary,
-                              child: Text(
-                                (index + 1).toString(),
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedYear = value;
+                    });
+                  },
+                ),
 
-                            title: Text(filteredStudents[index]["name"]),
+                const SizedBox(height: 20),
 
-                            subtitle: Text(
-                              filteredStudents[index]["rollNo"].toString(),
-                            ),
-
-                            trailing: IconButton(
-                              icon: const Icon(
-                                Icons.delete_outline,
-                                color: Colors.red,
-                              ),
-                              onPressed: () {
-                                showDeleteDialog(filteredStudents[index]);
-                              },
-                            ),
+                Expanded(
+                  child: filteredStudents.isEmpty
+                      ? Center(
+                          child: Text(
+                            "No Students Found",
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
-      ),
+                        )
+                      : ListView.builder(
+                          itemCount: filteredStudents.length,
 
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AddStudentScreen()),
-          ).then((_) {
-            loadStudents();
-          });
-        },
-        child: const Icon(Icons.add),
-      ),
+                          itemBuilder: (context, index) {
+                            return Card(
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.primary,
+                                  child: Text(
+                                    (index + 1).toString(),
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+
+                                title: Text(filteredStudents[index]["name"]),
+
+                                subtitle: Text(
+                                  filteredStudents[index]["rollNo"].toString(),
+                                ),
+
+                                trailing: IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () {
+                                    showDeleteDialog(filteredStudents[index]);
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AddStudentScreen()),
+              ).then((_) {
+                ref.invalidate(studentsProvider);
+              });
+            },
+            child: const Icon(Icons.add),
+          ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+
+      error: (error, stack) => Center(child: Text(error.toString())),
     );
   }
 }
